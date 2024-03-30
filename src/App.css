@@ -25,5 +25,5 @@
   aspect-ratio: 1;
   outline: 1px solid black;
   transform-origin: 50% 100%;
-  transition: all 0.1s ease-in-out;
+  transition: all 0.05s linear;
 }
