@@ -27,17 +27,6 @@ const calculateAbsoluteCenterDistance = (index: number, widthArray: number[]) =>
   return sumOfWidths
 }
 
-const calculateAbsoluteCursorDistance = (index: number, relativeX: number, widthArray: number[]) => {
-  let sumOfWidths = 0
-  for (let i = 0; i < index; i++) {
-    sumOfWidths += widthArray[i]
-  }
-
-  sumOfWidths += ((index + 1) * GAP)
-  sumOfWidths += relativeX
-  return sumOfWidths
-}
-
 const calculateScaleFactor = (absInvDistance: number, elWidth: number): number => {
   return Math.round(Math.min(absInvDistance / ((SPAN / 2) - (elWidth / 2)), 1) * 100) / 100
 }
