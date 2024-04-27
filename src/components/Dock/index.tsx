@@ -1,23 +1,66 @@
+import { useState, useRef } from 'react';
 import './index.css'
+import { 
+  DEFAULT_WIDTH, 
+  isElementWithinSpan, 
+  calculateWidth, 
+  calculateScaleFactor, 
+  throttle,
+  calculateAbsoluteCenterDistance
+} from './utils';
+import Item from './Item';
 
-export default function Dock() {
+interface Props {
+  items: React.ReactNode[];
+  magnification: number;
+  span: number;
+  gap: number;
+}
+
+export default function Dock(props: Props) {
+  const [widthArray, setScaleValue] = useState<number[]>(
+    () => new Array<number>(props.items.length).fill(DEFAULT_WIDTH)
+  );
+  const conRef = useRef<HTMLDivElement>(null)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if(!conRef.current) return;
+    const box = conRef.current.getBoundingClientRect();
+    const offsetX = e.clientX - box.x;
+    const cursorCenter = Math.max(offsetX, 0)
+
+    const res = []
+    for (let i = 0; i < props.items.length; i++) {
+      if (isElementWithinSpan(i, cursorCenter, props.span, widthArray, props.gap)) {
+        const absDistFromCursorCenter = Math.abs(cursorCenter - calculateAbsoluteCenterDistance(i, widthArray, props.gap))
+        const absoluteInvertedDistance = Math.abs((props.span / 2) - absDistFromCursorCenter)
+        res.push(calculateWidth(calculateScaleFactor(absoluteInvertedDistance, widthArray[i]), DEFAULT_WIDTH, props.magnification))
+      } else {
+        res.push(DEFAULT_WIDTH)
+      }
+    }
+
+    setScaleValue(res)
+  }
+  
+  const throttledMouseMoveHandler = throttle((e: React.MouseEvent<HTMLDivElement>) => {
+    handleMouseMove(e)
+  }, 500);
+  
   return (
     <>
-      <input step={0.1} type="range" min={0} max={1} value={magnification} onChange={(e) => {setMagnification(parseFloat(e.target.value))}} />
-      <span style={{fontSize: '2rem'}}>{magnification}</span>
       <div
         ref={conRef}
         className="con"
         onMouseMove={throttledMouseMoveHandler}
-        onMouseLeave={() => {setScaleValue(new Array(EL_COUNT).fill(DEFAULT_WIDTH))}}
+        onMouseLeave={() => {setScaleValue(new Array(props.items.length).fill(DEFAULT_WIDTH))}}
+        style={{gap: props.gap}}
       >
-        {new Array(EL_COUNT).fill("").map((_, idx) => (
-          <Item
-            key={idx}
-            index={idx}
-            width={widthArray[idx]}
-          />
-        ))}
+        {props.items.map((I, idx) => (
+          <Item gap={props.gap} width={widthArray[idx]} index={idx} key={idx}>
+            {I}
+          </Item>
+        ))} 
       </div>      
     </>
   )
